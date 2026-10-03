@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4CorrLab v1.7 - Correlation &amp; Association Lab</title>
+  <title>4CorrLab v1.8 - Correlation &amp; Association Lab</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1B2340">
+  <meta name="application-name" content="4CorrLab">
+  <meta name="apple-mobile-web-app-title" content="4CorrLab">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
   <script>(function(){var t=null;try{t=localStorage.getItem('4corrlab-theme');}catch(e){}if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);})();</script>
@@ -419,10 +425,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
       </svg>
     </div>
     <div class="app-title-block">
-      <h1 class="app-name">4Corr<span class="lab">Lab</span><span class="version-pill">v1.7</span></h1>
+      <h1 class="app-name">4Corr<span class="lab">Lab</span><span class="version-pill">v1.8</span></h1>
       <span class="app-byline">Correlation &amp; Association Lab &bull; by Periklis Gogas, 2026</span>
     </div>
     <div class="btn-row no-print" style="margin-left:auto;">
+      <button id="clInstallBtn" class="btn-navy" style="display:none; width:auto; margin-top:0;" onclick="clInstallApp()" title="Install 4CorrLab on this computer so it opens in its own window from the Start menu, desktop or Dock">&#11015; Install 4CorrLab</button>
       <button id="clThemeBtn" class="btn-theme" onclick="clToggleTheme()" title="Switch between light and dark theme">&#9790; Dark mode</button>
       <button class="btn-secondary" style="width:auto; margin-top:0;" onclick="clSwitchTab('report')">View Report (<span id="clReportCount">0</span>)</button>
     </div>
@@ -975,10 +982,10 @@ const CL_DATASETS = {
 
 
 /* ===================================================================
-   4CorrLab v1.7 application core
+   4CorrLab v1.8 application core
    =================================================================== */
 
-const CL_VERSION = '1.7';
+const CL_VERSION = '1.8';
 const CL_APP = '4CorrLab';
 const CL_PALETTE = ['#2563EB', '#E2A83E', '#1F8A70', '#C2410C', '#7C3AED', '#0891B2', '#DB2777', '#65A30D', '#1B2340', '#EA580C'];
 const CL_COLORS = { pearson: '#2563EB', spearman: '#1F8A70', eta: '#B7791F', v: '#7C3AED', fit: '#C2410C', excluded: '#94A3B8' };
@@ -3587,8 +3594,45 @@ function clNewSession() {
   clSwitchTab('data');
 }
 
+/* ---------- install as an app (PWA), offline support, open .4rl files with a double-click ---------- */
+let clInstallEvent = null;
+function clIsStandalone() { return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  clInstallEvent = e;
+  const b = document.getElementById('clInstallBtn');
+  if (b && !clIsStandalone()) b.style.display = '';
+});
+window.addEventListener('appinstalled', function () {
+  clInstallEvent = null;
+  const b = document.getElementById('clInstallBtn');
+  if (b) b.style.display = 'none';
+  clShowBanner('4CorrLab is installed. From now on open it from its icon (Start menu, desktop or Dock); it opens in its own window.', 'success');
+});
+async function clInstallApp() {
+  if (!clInstallEvent) { clShowBanner('To install, use the browser menu: in Edge "Apps > Install this site as an app", in Chrome "Cast, save and share > Install page as app".'); return; }
+  clInstallEvent.prompt();
+  try { await clInstallEvent.userChoice; } catch (e) { /* ignore */ }
+  clInstallEvent = null;
+  document.getElementById('clInstallBtn').style.display = 'none';
+}
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { /* offline support unavailable */ }); });
+}
+function clInitFileLaunch() {
+  if (!('launchQueue' in window) || !window.launchQueue) return;
+  window.launchQueue.setConsumer(async function (params) {
+    if (!params || !params.files || !params.files.length) return;
+    try {
+      const file = await params.files[0].getFile();
+      clLoadSession({ target: { files: [file], value: '' } });
+    } catch (e) { clShowBanner('Could not open this session file: ' + e.message); }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   clInitTheme();
+  clInitFileLaunch();
   clOnPresetChange();
   clUpdateTransformParamUI();
   clRenderReportItemsList();

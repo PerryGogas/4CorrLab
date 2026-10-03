@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "4CorrLab - Correlation & Association Lab",
+  "short_name": "4CorrLab",
+  "description": "Correlation and association analysis for teaching: Pearson r, Spearman rho, eta, Cramer's V, correlation matrix, Simpson's Paradox and a report builder. By Periklis Gogas.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F7F5F0",
+  "theme_color": "#1B2340",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "file_handlers": [
+    { "action": "./", "accept": { "application/x-4corrlab-session": [".4rl", ".clb"] }, "icons": [ { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" } ] }
+  ],
+  "launch_handler": { "client_mode": "focus-existing" }
+}
